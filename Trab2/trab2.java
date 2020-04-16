@@ -1,6 +1,8 @@
 import java.security.*;
 import java.util.Scanner;
 
+import javax.crypto.Cipher;
+
 public class trab2 {
     public static void main(String args[]) throws Exception {
         // Reading data from user
@@ -10,7 +12,7 @@ public class trab2 {
         System.out.println(
                 "Digite o padrão de assinatura:\n 1 - MD5withRSA\n 2 - SHA1withRSA\n 3 - SHA256withRSA\n 4 - SHA512withRSA");
         int signatureTyped = sc.nextInt();
-        String signature = null;
+        String signatureType = null;
 
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
 
@@ -20,21 +22,21 @@ public class trab2 {
         Key pub = kp.getPublic();
         Key pvt = kp.getPrivate();
 
-        System.out.println(pub);
-        System.out.println(pvt);
+        System.out.println("CHAVE PUBLICA \n" + pub);
+        System.out.println("CHAVE PRIVADA \n" + pvt);
 
         switch (signatureTyped) {
             case 1:
-                signature = "MD5";
+                signatureType = "MD5";
                 break;
             case 2:
-                signature = "SHA-1";
+                signatureType = "SHA-1";
                 break;
             case 3:
-                signature = "SHA-256";
+                signatureType = "SHA-256";
                 break;
             case 4:
-                signature = "SHA-512";
+                signatureType = "SHA-512";
                 break;
             default:
                 System.out.println("Padrão de assinatura inválido.");
@@ -42,7 +44,7 @@ public class trab2 {
         }
 
         // Creating the MessageDigest object
-        MessageDigest md = MessageDigest.getInstance(signature);
+        MessageDigest md = MessageDigest.getInstance(signatureType);
 
         // Passing data to the created MessageDigest Object
         md.update(message.getBytes());
@@ -58,5 +60,25 @@ public class trab2 {
             hexString.append(Integer.toHexString(0xFF & digest[i]));
         }
         System.out.println("Hex format : " + hexString.toString());
+        Cipher cipher = Cipher.getInstance("RSA");
+        cipher.init(Cipher.ENCRYPT_MODE, pvt);
+        byte[] signature = cipher.doFinal(digest);
+        for (int i = 0; i < signature.length; i++) {
+            hexString.append(Integer.toHexString(0xFF & signature[i]));
+        }
+        System.out.println("hexString - asssinatura finalizada " + hexString.toString());
+
+        // VALIDAÇÃO DA SIGNATURE
+        cipher.init(Cipher.DECRYPT_MODE, pub);
+
+        byte[] digest2 = cipher.doFinal(signature);
+
+        for (int i = 0; i < digest.length; i++) {
+            if (digest[i] != digest2[i]) {
+                System.out.println("to triste no to feliz");
+                break;
+            }
+        }
+        System.out.println("YAAAAAAAAAY porraaaa");
     }
 }
